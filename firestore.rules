@@ -1,0 +1,27 @@
+
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Aturan untuk profil pengguna
+    match /users/{userId} {
+      allow read: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // Aturan untuk riwayat broadcast
+    match /history/{historyId} {
+      allow create: if request.auth != null;
+      allow read: if request.auth != null && (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.upc == resource.data.upc || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.upc == 'all');
+    }
+
+    // Aturan untuk tugas (tasks)
+    match /tasks/{taskId} {
+      // Izinkan baca jika UPC pengguna cocok atau jika pengguna adalah super admin.
+      allow read: if request.auth != null && (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.upc == resource.data.upc || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.upc == 'all');
+      
+      // Izinkan buat, ubah, hapus jika UPC pengguna cocok.
+      allow write: if request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.upc == request.resource.data.upc;
+    }
+  }
+}

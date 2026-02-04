@@ -1,0 +1,73 @@
+
+{
+  "title": "NAVIGA System Database",
+  "entities": [
+    {
+      "name": "User",
+      "attributes": [
+        { "name": "name", "isPrimaryKey": true },
+        { "name": "email", "isPrimaryKey": false },
+        { "name": "upc", "isPrimaryKey": false },
+        { "name": "avatar", "isPrimaryKey": false }
+      ],
+      "x": 100,
+      "y": 250
+    },
+    {
+      "name": "TaskBoard",
+      "attributes": [
+        { "name": "upc_id", "isPrimaryKey": true },
+        { "name": "tasks_json", "isPrimaryKey": false },
+        { "name": "columns_json", "isPrimaryKey": false },
+        { "name": "columnOrder_json", "isPrimaryKey": false }
+      ],
+      "x": 450,
+      "y": 150
+    },
+    {
+      "name": "History",
+      "attributes": [
+        { "name": "id", "isPrimaryKey": true },
+        { "name": "timestamp", "isPrimaryKey": false },
+        { "name": "type", "isPrimaryKey": false },
+        { "name": "customerName", "isPrimaryKey": false },
+        { "name": "adminUser", "isPrimaryKey": false },
+        { "name": "template", "isPrimaryKey": false },
+        { "name": "upc_id", "isPrimaryKey": false }
+      ],
+      "x": 450,
+      "y": 350
+    }
+  ],
+  "relationships": [
+    {
+      "name": "Manages",
+      "connections": [
+        { "entityName": "User", "cardinality": "ONE", "role": "" },
+        { "entityName": "TaskBoard", "cardinality": "ONE", "role": "" }
+      ],
+      "attributes": [],
+      "x": 275,
+      "y": 180
+    },
+    {
+      "name": "Creates",
+      "connections": [
+        { "entityName": "User", "cardinality": "ONE", "role": "" },
+        { "entityName": "History", "cardinality": "MANY", "role": "" }
+      ],
+      "attributes": [],
+      "x": 275,
+      "y": 380
+    }
+  ],
+  "notes": [
+    {
+      "text": "This ERD represents data stored in the browser's Local Storage, not a traditional SQL database. The 'upc_id' field conceptually links TaskBoard and History to a User's branch (UPC).",
+      "connectTo": [],
+      "x": 100,
+      "y": 500,
+      "width": 500
+    }
+  ]
+}

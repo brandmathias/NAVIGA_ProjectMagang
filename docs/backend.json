@@ -1,0 +1,223 @@
+
+{
+  "entities": {
+    "UserProfile": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "User Profile",
+      "type": "object",
+      "description": "Represents non-sensitive user data stored in Firestore.",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "The user's display name."
+        },
+        "upc": {
+          "type": "string",
+          "description": "The UPC (Unit Pelayanan Cabang) the user belongs to. 'all' for super admins."
+        },
+        "avatar": {
+          "type": "string",
+          "description": "URL to the user's avatar image."
+        }
+      },
+      "required": ["name", "upc"]
+    },
+    "Customer": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Customer",
+      "type": "object",
+      "description": "Represents a customer with pawn or installment transactions.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Customer entity."
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the customer."
+        },
+        "phoneNumber": {
+          "type": "string",
+          "description": "The customer's phone number."
+        },
+        "dueDate": {
+          "type": "string",
+          "description": "The due date of the customer's transaction.",
+          "format": "date-time"
+        },
+        "transactionType": {
+          "type": "string",
+          "description": "The type of transaction (gadai/angsuran)."
+        },
+        "priority": {
+          "type": "string",
+          "description": "The priority level of the customer (tinggi/sedang/rendah)."
+        },
+        "loanValue": {
+          "type": "number",
+          "description": "The value of the pawn or installment loan."
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "phoneNumber",
+        "dueDate",
+        "transactionType",
+        "priority",
+        "loanValue"
+      ]
+    },
+    "Admin": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Admin",
+      "type": "object",
+      "description": "Represents an administrator of the system.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Admin entity."
+        },
+        "email": {
+          "type": "string",
+          "description": "The email address of the admin.",
+          "format": "email"
+        }
+      },
+      "required": [
+        "id",
+        "email"
+      ]
+    },
+    "HistoryEntry": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "HistoryEntry",
+      "type": "object",
+      "description": "Represents a log of a broadcast action taken by an admin.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the HistoryEntry."
+        },
+        "timestamp": {
+          "type": "string",
+          "description": "ISO string of when the action was performed.",
+          "format": "date-time"
+        },
+        "type": {
+          "type": "string",
+          "description": "Type of broadcast ('Gadaian Broadcast' or 'Angsuran Broadcast')."
+        },
+        "customerName": {
+          "type": "string",
+          "description": "Name of the customer contacted."
+        },
+        "customerIdentifier": {
+          "type": "string",
+          "description": "SBG number or other customer ID."
+        },
+        "status": {
+          "type": "string",
+          "description": "Status of the action (e.g., 'Notifikasi Terkirim')."
+        },
+        "adminUser": {
+          "type": "string",
+          "description": "The admin user who performed the action."
+        },
+        "template": {
+          "type": "string",
+          "description": "The message template used."
+        },
+        "upc": {
+          "type": "string",
+          "description": "The UPC/branch associated with this history entry."
+        }
+      },
+      "required": [
+        "timestamp",
+        "type",
+        "customerName",
+        "customerIdentifier",
+        "status",
+        "adminUser",
+        "template",
+        "upc"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/users/{userId}",
+        "definition": {
+          "entityName": "UserProfile",
+          "schema": {
+            "$ref": "#/backend/entities/UserProfile"
+          },
+          "description": "Stores non-sensitive, public-facing user profile information like name, UPC, and avatar.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "Matches the Firebase Auth UID of the user."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/customers/{customerId}",
+        "definition": {
+          "entityName": "Customer",
+          "schema": {
+            "$ref": "#/backend/entities/Customer"
+          },
+          "description": "Stores customer data including name, phone number, due date, transaction type, and loan value.",
+          "params": [
+            {
+              "name": "customerId",
+              "description": "Unique identifier for the customer."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/roles_admin/{adminId}",
+        "definition": {
+          "entityName": "Admin",
+          "schema": {
+            "$ref": "#/backend/entities/Admin"
+          },
+          "description": "Collection to store admin user IDs. Existence in this collection grants admin privileges.",
+          "params": [
+            {
+              "name": "adminId",
+              "description": "The Firebase Auth UID of the admin user."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/history/{historyId}",
+        "definition": {
+          "entityName": "HistoryEntry",
+          "schema": {
+            "$ref": "#/backend/entities/HistoryEntry"
+          },
+          "description": "Stores logs of all broadcast activities.",
+          "params": [
+            {
+              "name": "historyId",
+              "description": "Unique identifier for the history log entry."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "The Firestore structure is designed to ensure authorization independence, clarity, and scalability for the GadaiAlert application. Customers are stored in a flat collection, and admins are managed via a dedicated collection for role existence checks. This structure avoids hierarchical authorization dependencies, enabling atomic operations and simplifying security rules.\n\nThe `/customers` collection stores customer data, and access control is enforced based on admin role verification via the `/roles_admin` collection. The `QAPs` are supported as all customers are stored in a single collection with a uniform security posture. List operations can be secured by verifying the requesting user's admin role. Since priority is calculated on the client, no priority related fields are added to the Firestore schema. In order to reduce complexity we will not add the chatbot functionality.\n\nA new `/history` collection is added to store all broadcast logs, replacing the previous localStorage implementation. Each history document will contain a `upc` field to allow for role-based access control, where admins can only see the history for their specific branch, and super-admins can see all history."
+  }
+}
